@@ -58,15 +58,18 @@ a23n :: Double
 a23n = 1370589
 {-# INLINE a23n #-}
 
+floorInt :: Double -> Int
+floorInt = floor
+
 mrg32k3a_genRand :: MRGen -> (Double,MRGen)
 mrg32k3a_genRand (MRGen s10 s11 s12 s20 s21 s22)
   = (v, MRGen s11 s12 t1 s21 s22 t2)
   where p1 = a12 * s11 - a13n * s10
-        q1 = floor (p1 / m1f)
+        q1 = floorInt (p1 / m1f)
         r1 = p1 - fromIntegral q1 * m1f
         !t1 = if r1 < 0.0 then r1 + m1f else r1
         p2 = a21 * s22 - a23n * s20
-        q2 = floor (p2 / m2f)
+        q2 = floorInt (p2 / m2f)
         r2 = p2 - fromIntegral q2 * m2f
         !t2 = if r2 < 0.0 then r2 + m2f else r2
         !v = if t1 <= t2 then (t1 - t2 + m1f) * norm else (t1 - t2) * norm
