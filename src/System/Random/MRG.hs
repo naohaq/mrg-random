@@ -18,7 +18,8 @@ module System.Random.MRG
 -- import System.Random
 import Data.Typeable (Typeable)
 import Data.Word (Word32)
--- import qualified Data.Vector.Unboxed as I
+
+import System.Random.MRG.Internal
 
 data MRGen = MRGen Double Double Double Double Double Double
 
