@@ -18,6 +18,7 @@ module System.Random.MRG
 -- import System.Random
 import Data.Typeable (Typeable)
 import Data.Word (Word32)
+import Data.List (unfoldr)
 
 import System.Random.MRG.Internal
 
@@ -43,20 +44,36 @@ m2f :: Double
 m2f = fromIntegral m2
 {-# INLINE m2f #-}
 
+ia12 :: Int
+ia12 = 1403580
+{-# INLINE ia12 #-}
+
 a12 :: Double
-a12 = 1403580
+a12 = fromIntegral ia12
 {-# INLINE a12 #-}
 
+ia13n :: Int
+ia13n = 810728
+{-# INLINE ia13n #-}
+
 a13n :: Double
-a13n = 810728
+a13n = fromIntegral ia13n
 {-# INLINE a13n #-}
 
+ia21 :: Int
+ia21 = 527612
+{-# INLINE ia21 #-}
+
 a21 :: Double
-a21 = 527612
+a21 = fromIntegral ia21
 {-# INLINE a21 #-}
 
+ia23n :: Int
+ia23n = 1370589 
+{-# INLINE ia23n #-}
+
 a23n :: Double
-a23n = 1370589
+a23n = fromIntegral ia23n
 {-# INLINE a23n #-}
 
 floorInt :: Double -> Int
@@ -108,5 +125,37 @@ restore (Seed (t1,t2,t3,t4,t5,t6)) = MRGen s10 s11 s12 s20 s21 s22
         s22 = fromIntegral $ t6 `mod` fromIntegral m2
 {-# INLINE restore #-}
 
+jump :: Int -> MRGen -> MRGen
+jump e (MRGen s10 s11 s12 s20 s21 s22) = MRGen t10 t11 t12 t20 t21 t22
+  where m1' = fromIntegral m1 :: Integer
+        m2' = fromIntegral m2 :: Integer
+        v1 = floor <$> SV (s10, s11, s12)
+        v2 = floor <$> SV (s20, s21, s22)
+        (b1,b2) = jmtxs !! (e-1)
+        w1 = vecTrOn m1' (fromIntegral <$> b1) v1
+        w2 = vecTrOn m2' (fromIntegral <$> b2) v2
+        SV (t10,t11,t12) = fromIntegral <$> w1
+        SV (t20,t21,t22) = fromIntegral <$> w2
+
+mtx1 :: JumpMatrix Word32
+mtx1 = JM (0, 1, 0) (0, 0, 1) (fromIntegral m1 - fromIntegral ia13n, fromIntegral ia12, 0)
+
+mtx2 :: JumpMatrix Word32
+mtx2 = JM (0, 1, 0) (0, 0, 1) (fromIntegral m2 - fromIntegral ia23n, 0, fromIntegral ia21)
+
+cntdn :: (a -> a) -> (a, Int) -> Maybe (a, (a, Int))
+cntdn _ (_, 0) = Nothing
+cntdn f (x, k) = Just (y, (y, k-1))
+  where y = f x
+
+jmtxs :: [(JumpMatrix Word32,JumpMatrix Word32)]
+jmtxs = zip (map (fmap fromIntegral) xs) (map (fmap fromIntegral) ys)
+  where n = 64
+        m1' = fromIntegral m1 :: Integer
+        mtx1' = fromIntegral <$> mtx1
+        xs = unfoldr (cntdn (matSqrOn m1')) (mtx1',n)
+        m2' = fromIntegral m2 :: Integer
+        mtx2' = fromIntegral <$> mtx2
+        ys = unfoldr (cntdn (matSqrOn m2')) (mtx2',n)
 
 -- EOF

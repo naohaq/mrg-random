@@ -18,9 +18,9 @@ cabal-version:       >=1.10
 
 library
   exposed-modules: System.Random.MRG
-  -- other-modules:
+  other-modules: System.Random.MRG.Internal
   -- other-extensions:
   build-depends:       base >=4.12 && <4.13
   hs-source-dirs:      src
-  ghc-options: -Wall
+  -- ghc-options: -Wall
   default-language:    Haskell2010
