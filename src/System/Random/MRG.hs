@@ -17,7 +17,7 @@ module System.Random.MRG
 
 -- import System.Random
 import Data.Typeable (Typeable)
-import Data.Word (Word32)
+import Data.Word (Word32,Word64)
 import Data.List (unfoldr)
 
 import System.Random.MRG.Internal
@@ -127,8 +127,8 @@ restore (Seed (t1,t2,t3,t4,t5,t6)) = MRGen s10 s11 s12 s20 s21 s22
 
 jump :: Int -> MRGen -> MRGen
 jump e (MRGen s10 s11 s12 s20 s21 s22) = MRGen t10 t11 t12 t20 t21 t22
-  where m1' = fromIntegral m1 :: Integer
-        m2' = fromIntegral m2 :: Integer
+  where m1' = fromIntegral m1 :: Word64
+        m2' = fromIntegral m2 :: Word64
         v1 = floor <$> SV (s10, s11, s12)
         v2 = floor <$> SV (s20, s21, s22)
         (b1,b2) = jmtxs !! (e-1)
@@ -137,10 +137,10 @@ jump e (MRGen s10 s11 s12 s20 s21 s22) = MRGen t10 t11 t12 t20 t21 t22
         SV (t10,t11,t12) = fromIntegral <$> w1
         SV (t20,t21,t22) = fromIntegral <$> w2
 
-mtx1 :: JumpMatrix Word32
+mtx1 :: JumpMatrix Word64
 mtx1 = JM (0, 1, 0) (0, 0, 1) (fromIntegral m1 - fromIntegral ia13n, fromIntegral ia12, 0)
 
-mtx2 :: JumpMatrix Word32
+mtx2 :: JumpMatrix Word64
 mtx2 = JM (0, 1, 0) (0, 0, 1) (fromIntegral m2 - fromIntegral ia23n, 0, fromIntegral ia21)
 
 cntdn :: (a -> a) -> (a, Int) -> Maybe (a, (a, Int))
@@ -151,10 +151,10 @@ cntdn f (x, k) = Just (y, (y, k-1))
 jmtxs :: [(JumpMatrix Word32,JumpMatrix Word32)]
 jmtxs = zip (map (fmap fromIntegral) xs) (map (fmap fromIntegral) ys)
   where n = 64
-        m1' = fromIntegral m1 :: Integer
+        m1' = fromIntegral m1 :: Word64
         mtx1' = fromIntegral <$> mtx1
         xs = unfoldr (cntdn (matSqrOn m1')) (mtx1',n)
-        m2' = fromIntegral m2 :: Integer
+        m2' = fromIntegral m2 :: Word64
         mtx2' = fromIntegral <$> mtx2
         ys = unfoldr (cntdn (matSqrOn m2')) (mtx2',n)
 
