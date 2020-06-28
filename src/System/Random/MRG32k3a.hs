@@ -2,7 +2,7 @@
 {-# LANGUAGE BangPatterns, CPP, DeriveDataTypeable, FlexibleContexts,
     ScopedTypeVariables, TypeFamilies #-}
 
-module System.Random.MRG
+module System.Random.MRG32k3a
     (
       MRGen
     , initialize
