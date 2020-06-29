@@ -4,7 +4,7 @@
 
 module System.Random.MRG32k3a
     (
-      MRGen
+      Gen
     , initialize
 
     , uniform
@@ -24,7 +24,7 @@ import Data.List (unfoldr)
 
 import System.Random.MRG.Internal
 
-data MRGen = MRGen Double Double Double Double Double Double
+newtype Gen = Gen (Double,Double,Double,Double,Double,Double)
 
 norm :: Double
 norm = 2.328306549295728e-10
@@ -81,9 +81,9 @@ a23nf = fromIntegral a23n
 floorInt :: Double -> Int
 floorInt = floor
 
-mrg32k3a_genRand :: MRGen -> (Double,MRGen)
-mrg32k3a_genRand (MRGen s10 s11 s12 s20 s21 s22)
-  = (v, MRGen s11 s12 t1 s21 s22 t2)
+mrg32k3a_genRand :: Gen -> (Double,Gen)
+mrg32k3a_genRand (Gen (s10,s11,s12,s20,s21,s22))
+  = (v, Gen (s11,s12,t1,s21,s22,t2))
   where p1 = a12f * s11 - a13nf * s10
         q1 = floorInt (p1 / m1f)
         r1 = p1 - fromIntegral q1 * m1f
@@ -95,21 +95,22 @@ mrg32k3a_genRand (MRGen s10 s11 s12 s20 s21 s22)
         !v = if t1 <= t2 then (t1 - t2 + m1f) * norm else (t1 - t2) * norm
 {-# INLINE mrg32k3a_genRand #-}
 
-initialize :: (Integral a) => a -> MRGen
-initialize seed = MRGen s1 s1 s1 s2 s2 s2
+initialize :: (Integral a) => a -> Gen
+initialize seed = Gen (s1,s1,s1,s2,s2,s2)
   where s' = fromIntegral seed
         s1 = fromIntegral $ s' `mod` m1
         s2 = fromIntegral $ s' `mod` m2
 {-# INLINE initialize #-}
 
-uniform :: MRGen -> (Double,MRGen)
+uniform :: Gen -> (Double,Gen)
 uniform gen = mrg32k3a_genRand gen
 {-# INLINE uniform #-}
 
-newtype Seed = Seed { fromSeed :: (Word32,Word32,Word32,Word32,Word32,Word32) } deriving (Eq, Show, Typeable)
+newtype Seed = Seed { fromSeed :: (Word32,Word32,Word32,Word32,Word32,Word32) }
+  deriving (Eq, Show, Typeable)
 
-save :: MRGen -> Seed
-save (MRGen s10 s11 s12 s20 s21 s22) = Seed (t1,t2,t3,t4,t5,t6)
+save :: Gen -> Seed
+save (Gen (s10,s11,s12,s20,s21,s22)) = Seed (t1,t2,t3,t4,t5,t6)
   where t1 = floor s10
         t2 = floor s11
         t3 = floor s12
@@ -118,8 +119,8 @@ save (MRGen s10 s11 s12 s20 s21 s22) = Seed (t1,t2,t3,t4,t5,t6)
         t6 = floor s22
 {-# INLINE save #-}
 
-restore :: Seed -> MRGen
-restore (Seed (t1,t2,t3,t4,t5,t6)) = MRGen s10 s11 s12 s20 s21 s22
+restore :: Seed -> Gen
+restore (Seed (t1,t2,t3,t4,t5,t6)) = Gen (s10,s11,s12,s20,s21,s22)
   where m1' = fromIntegral m1
         m2' = fromIntegral m2
         s10 = fromIntegral $ t1 `mod` m1'
@@ -130,11 +131,11 @@ restore (Seed (t1,t2,t3,t4,t5,t6)) = MRGen s10 s11 s12 s20 s21 s22
         s22 = fromIntegral $ t6 `mod` m2'
 {-# INLINE restore #-}
 
-jump :: Int -> MRGen -> MRGen
-jump e g@(MRGen s10 s11 s12 s20 s21 s22)
+jump :: Int -> Gen -> Gen
+jump e g@(Gen (s10,s11,s12,s20,s21,s22))
   | e > 64    = error "Jump factor must be smaller than 64."
   | e == 0    = g
-  | otherwise = MRGen t10 t11 t12 t20 t21 t22
+  | otherwise = Gen (t10,t11,t12,t20,t21,t22)
   where m1' = fromIntegral m1 :: Word64
         m2' = fromIntegral m2 :: Word64
         v1 = floor <$> SV (s10, s11, s12)
