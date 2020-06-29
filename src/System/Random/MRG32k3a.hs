@@ -97,8 +97,9 @@ mrg32k3a_genRand (MRGen s10 s11 s12 s20 s21 s22)
 
 initialize :: (Integral a) => a -> MRGen
 initialize seed = MRGen s1 s1 s1 s2 s2 s2
-  where s1 = fromIntegral $ fromIntegral seed `mod` m1
-        s2 = fromIntegral $ fromIntegral seed `mod` m2
+  where s' = fromIntegral seed
+        s1 = fromIntegral $ s' `mod` m1
+        s2 = fromIntegral $ s' `mod` m2
 {-# INLINE initialize #-}
 
 uniform :: MRGen -> (Double,MRGen)
@@ -119,13 +120,14 @@ save (MRGen s10 s11 s12 s20 s21 s22) = Seed (t1,t2,t3,t4,t5,t6)
 
 restore :: Seed -> MRGen
 restore (Seed (t1,t2,t3,t4,t5,t6)) = MRGen s10 s11 s12 s20 s21 s22
-  where s10 = fromIntegral $ t1 `mod` fromIntegral m1
-        s11 = fromIntegral $ t2 `mod` fromIntegral m1
-        s12 = fromIntegral $ t3 `mod` fromIntegral m1
-        s20 = fromIntegral $ t4 `mod` fromIntegral m2
-        s21 = fromIntegral $ t5 `mod` fromIntegral m2
-        s22 = fromIntegral $ t6 `mod` fromIntegral m2
-
+  where m1' = fromIntegral m1
+        m2' = fromIntegral m2
+        s10 = fromIntegral $ t1 `mod` m1'
+        s11 = fromIntegral $ t2 `mod` m1'
+        s12 = fromIntegral $ t3 `mod` m1'
+        s20 = fromIntegral $ t4 `mod` m2'
+        s21 = fromIntegral $ t5 `mod` m2'
+        s22 = fromIntegral $ t6 `mod` m2'
 {-# INLINE restore #-}
 
 jump :: Int -> MRGen -> MRGen
