@@ -9,6 +9,7 @@ module System.Random.MRG32k3a
     , initialize
 
     , uniform
+    , uniformW32
 
     , Seed
     , fromSeed
@@ -45,7 +46,9 @@ instance MRGen Gen where
 
 instance MRGen GenI where
   initialize = initializeI
-  uniform gen = mrg32k3a_genRandI gen
+  uniform gen = (v', gen')
+    where (v,gen') = mrg32k3a_genRandI gen
+          !v' = fromIntegral v * norm
   save = saveI
   restore = restoreI
   {-# INLINE uniform #-}
@@ -119,17 +122,19 @@ mrg32k3a_genRand (Gen (s10,s11,s12,s20,s21,s22))
         !v = if t1 <= t2 then (t1 - t2 + m1f) * norm else (t1 - t2) * norm
 {-# INLINE mrg32k3a_genRand #-}
 
-mrg32k3a_genRandI :: GenI -> (Double,GenI)
+mrg32k3a_genRandI :: GenI -> (Int64,GenI)
 mrg32k3a_genRandI (GenI (s10,s11,s12,s20,s21,s22))
   = (v, GenI (s11,s12,t1,s21,s22,t2))
   where p1 = a12 * s11 - a13n * s10
         !t1 = p1 `mod` m1
         p2 = a21 * s22 - a23n * s20
         !t2 = p2 `mod` m2
-        t1f = fromIntegral t1
-        t2f = fromIntegral t2
-        !v = if t1f <= t2f then (t1f - t2f + m1f) * norm else (t1f - t2f) * norm
+        v = if t1 <= t2 then t1 - t2 + m1 else t1 - t2
 {-# INLINE mrg32k3a_genRandI #-}
+
+uniformW32 :: GenI -> (Word32,GenI)
+uniformW32 gen = (fromIntegral v, gen')
+  where (!v,gen') = mrg32k3a_genRandI gen
 
 initializeD :: (Integral a) => a -> Gen
 initializeD seed = Gen (s1,s1,s1,s2,s2,s2)
