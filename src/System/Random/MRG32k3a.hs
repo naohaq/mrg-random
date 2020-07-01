@@ -8,6 +8,7 @@ module System.Random.MRG32k3a
     , initialize
 
     , uniform
+    , uniformW32
 
     , Seed
     , fromSeed
@@ -21,6 +22,7 @@ module System.Random.MRG32k3a
 import Data.Typeable (Typeable)
 import Data.Word (Word32,Word64)
 import Data.List (unfoldr)
+import Data.Bits ((.&.))
 
 import System.Random.MRG.Internal
 
@@ -92,8 +94,30 @@ mrg32k3a_genRand (Gen (s10,s11,s12,s20,s21,s22))
         q2 = floorInt (p2 / m2f)
         r2 = p2 - fromIntegral q2 * m2f
         !t2 = if r2 < 0.0 then r2 + m2f else r2
-        !v = if t1 <= t2 then (t1 - t2 + m1f) * norm else (t1 - t2) * norm
+        v = if t1 <= t2 then t1 - t2 + m1f else t1 - t2
 {-# INLINE mrg32k3a_genRand #-}
+
+uniformDouble :: Gen -> (Double,Gen)
+uniformDouble g = (v * norm, g')
+  where (!v,!g') = mrg32k3a_genRand g
+{-# INLINE uniformDouble #-}
+
+ub :: Word64
+ub = m1sq - r
+  where !m1sq = m1 * m1
+        !r = m1sq `mod` 4294967296
+{-# INLINE ub #-}
+
+uniformW32 :: Gen -> (Word32,Gen)
+uniformW32 g = if x >= ub
+               then uniformW32 g1
+               else (fromIntegral (x .&. 4294967295), g1)
+  where (v0,g0) = mrg32k3a_genRand g
+        (v1,g1) = mrg32k3a_genRand g0
+        w0 = floor v0 :: Word64
+        w1 = floor v1 :: Word64
+        x = w0 * m1 + w1
+{-# INLINE uniformW32 #-}
 
 initialize :: (Integral a) => a -> Gen
 initialize seed = Gen (s1,s1,s1,s2,s2,s2)
@@ -103,7 +127,7 @@ initialize seed = Gen (s1,s1,s1,s2,s2,s2)
 {-# INLINE initialize #-}
 
 uniform :: Gen -> (Double,Gen)
-uniform gen = mrg32k3a_genRand gen
+uniform gen = uniformDouble gen
 {-# INLINE uniform #-}
 
 newtype Seed = Seed { fromSeed :: (Word32,Word32,Word32,Word32,Word32,Word32) }
