@@ -17,12 +17,20 @@ module System.Random.MRG63k3a
 
 import Data.Typeable (Typeable)
 import Data.Int  (Int64)
-import Data.Word (Word64)
+import Data.Word (Word32,Word64)
+import Data.Bits ((.&.))
 -- import Data.List (unfoldr)
+
+import System.Random
 
 -- import System.Random.MRG.Internal
 
 data Gen = Gen (Int64,Int64,Int64,Int64,Int64,Int64)
+
+instance RandomGen Gen where
+  genWord32 = uniformW32
+  split _ = error "Not yet implemented."
+  {-# INLINE genWord32 #-}
 
 norm :: Double
 norm = 1.0842021724855052e-19
@@ -89,7 +97,7 @@ r23 :: Int64
 r23 = 985240079
 {-# INLINE r23 #-}
 
-mrg63k3a_genRand :: Gen -> (Double,Gen)
+mrg63k3a_genRand :: Gen -> (Int64,Gen)
 mrg63k3a_genRand (Gen (s10,s11,s12,s20,s21,s22))
   = (v, Gen (s11,s12,t1,s21,s22,t2))
   where (h10,j10) = s10 `divMod` q13
@@ -118,7 +126,8 @@ mrg63k3a_genRand (Gen (s10,s11,s12,s20,s21,s22))
         (h11,j11) = s11 `divMod` q12
         --  h11 * q12 + j11 = s11
         --  a12 * j11 - h11 * r12
-        --    = ...
+        --    = a12 * (s11 - h11 * q12) - h11 * r12
+        --    = a12 * s11 - h11 * (a12 * q12 + r12)
         --    = a12 * s11 - h11 * m1
         --
         p12  = a12  * j11 - h11 * r12
@@ -127,7 +136,8 @@ mrg63k3a_genRand (Gen (s10,s11,s12,s20,s21,s22))
         (h20,j20) = s20 `divMod` q23
         --  h20 * q23 + j20 = s20
         --  a23n * j20 - h20 * r23
-        --    = ...
+        --    = a23n * (s20 - h20 * q23) - h20 * r23
+        --    = a23n * s20 - h20 * (a23n * q23 + r23)
         --    = a23n * s20 - h20 * m2
         --
         p23  = a23n * j20 - h20 * r23
@@ -135,15 +145,16 @@ mrg63k3a_genRand (Gen (s10,s11,s12,s20,s21,s22))
         (h22,j22) = s22 `divMod` q21
         --  h22 * q21 + j22 = s22
         --  a21 * j22 - h22 * r21
-        --    = ...
+        --    = a21 * (s22 - h22 * q21) - h22 * r21
+        --    = a21 * s22 - h22 * (a21 * q21 + r21)
         --    = a21 * s22 - h22 * m2
         --
         p21  = a21  * j22 - h22 * r21
         p21' = if p21  < 0 then p21  + m2 - p23' else p21 - p23'
         !t2  = if p21' < 0 then p21' + m2 else p21'
-        !v   = if p12 > p21
-               then fromIntegral (p12 - p21) * norm
-               else fromIntegral (p12 - p21 + m1) * norm
+        v    = if p12 > p21
+               then p12 - p21
+               else p12 - p21 + m1
 
 initialize :: (Integral a) => a -> Gen
 initialize seed = Gen (s1,s1,s1,s2,s2,s2)
@@ -152,8 +163,21 @@ initialize seed = Gen (s1,s1,s1,s2,s2,s2)
 {-# INLINE initialize #-}
 
 uniform01 :: Gen -> (Double, Gen)
-uniform01 gen = mrg63k3a_genRand gen
+uniform01 gen = (w,gen')
+  where (v,gen') = mrg63k3a_genRand gen
+        !w = norm * fromIntegral v
 {-# INLINE uniform01 #-}
+
+ub :: Int64
+ub = m1 - r
+  where !r = m1 `mod` 4294967296
+{-# INLINE ub #-}
+
+uniformW32 :: Gen -> (Word32, Gen)
+uniformW32 gen = go gen
+  where go g = if x >= ub then go g' else (fromIntegral (x .&. 4294967295), g')
+          where (x,g') = mrg63k3a_genRand g
+{-# INLINE uniformW32 #-}
 
 newtype Seed = Seed { fromSeed :: (Word64,Word64,Word64,Word64,Word64,Word64) }
   deriving (Eq, Show, Typeable)
