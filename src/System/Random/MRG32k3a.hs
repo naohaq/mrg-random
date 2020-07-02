@@ -7,8 +7,7 @@ module System.Random.MRG32k3a
       Gen
     , initialize
 
-    , uniform
-    , uniformW32
+    , uniform01
 
     , Seed
     , fromSeed
@@ -18,15 +17,20 @@ module System.Random.MRG32k3a
     , jump
     ) where
 
--- import System.Random
 import Data.Typeable (Typeable)
 import Data.Word (Word32,Word64)
 import Data.List (unfoldr)
 import Data.Bits ((.&.))
 
+import System.Random
+
 import System.Random.MRG.Internal
 
 newtype Gen = Gen (Double,Double,Double,Double,Double,Double)
+
+instance RandomGen Gen where
+  genWord32 = uniformW32
+  split _ = error "Not yet implemented."
 
 norm :: Double
 norm = 2.328306549295728e-10
@@ -97,10 +101,10 @@ mrg32k3a_genRand (Gen (s10,s11,s12,s20,s21,s22))
         v = if t1 <= t2 then t1 - t2 + m1f else t1 - t2
 {-# INLINE mrg32k3a_genRand #-}
 
-uniformDouble :: Gen -> (Double,Gen)
-uniformDouble g = (v * norm, g')
+uniform01 :: Gen -> (Double,Gen)
+uniform01 g = (v * norm, g')
   where (!v,!g') = mrg32k3a_genRand g
-{-# INLINE uniformDouble #-}
+{-# INLINE uniform01 #-}
 
 ub :: Word64
 ub = m1sq - r
@@ -126,9 +130,6 @@ initialize seed = Gen (s1,s1,s1,s2,s2,s2)
         s2 = fromIntegral $ s' `mod` m2
 {-# INLINE initialize #-}
 
-uniform :: Gen -> (Double,Gen)
-uniform gen = uniformDouble gen
-{-# INLINE uniform #-}
 
 newtype Seed = Seed { fromSeed :: (Word32,Word32,Word32,Word32,Word32,Word32) }
   deriving (Eq, Show, Typeable)
