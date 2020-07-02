@@ -13,6 +13,8 @@ module System.Random.MRG63k3a
     , fromSeed
     , save
     , restore
+
+    , jump
     ) where
 
 import Data.Typeable (Typeable)
