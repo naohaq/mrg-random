@@ -21,6 +21,7 @@ library
                  , System.Random.MRG32k3a.Stateful
                  , System.Random.MRG63k3a
   other-modules: System.Random.MRG.Internal
+               , System.Random.MRG32k3a.Internal
   -- other-extensions:
   build-depends: base >=4.12 && <4.13
                , primitive >= 0.6
