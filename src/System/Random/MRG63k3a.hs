@@ -154,9 +154,9 @@ mrg63k3a_genRand (Gen (s10,s11,s12,s20,s21,s22))
         p21  = a21  * j22 - h22 * r21
         p21' = if p21  < 0 then p21  + m2 - p23' else p21 - p23'
         !t2  = if p21' < 0 then p21' + m2 else p21'
-        v    = if p12 > p21
-               then p12 - p21
-               else p12 - p21 + m1
+        v    = if t1 > t2
+               then t1 - t2
+               else t1 - t2 + m1
 
 initialize :: (Integral a) => a -> Gen
 initialize seed = Gen (s1,s1,s1,s2,s2,s2)
