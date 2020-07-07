@@ -105,8 +105,8 @@ jump e g@(Gen (s10,s11,s12,s20,s21,s22))
         v1 = floor <$> SV (s10, s11, s12)
         v2 = floor <$> SV (s20, s21, s22)
         (b1,b2) = jmtxs !! (e-1)
-        w1 = vecTrOn m1' (fromIntegral <$> b1) v1
-        w2 = vecTrOn m2' (fromIntegral <$> b2) v2
+        w1 = vecTrMod m1' (fromIntegral <$> b1) v1
+        w2 = vecTrMod m2' (fromIntegral <$> b2) v2
         SV (t10,t11,t12) = fromIntegral <$> w1
         SV (t20,t21,t22) = fromIntegral <$> w2
 

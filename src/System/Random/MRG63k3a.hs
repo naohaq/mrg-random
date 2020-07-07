@@ -208,6 +208,22 @@ restore (Seed (t1,t2,t3,t4,t5,t6)) = Gen (s10,s11,s12,s20,s21,s22)
 
 jump :: Int -> Gen -> Gen
 jump e g@(Gen (s10,s11,s12,s20,s21,s22))
+  | e > 64 || e < 0 = error "Jump fuctor must be in the range of [0,64]"
+  | e == 0          = g
+  | otherwise       = Gen (t10,t11,t12,t20,t21,t22)
+  where m1' = fromIntegral m1
+        m2' = fromIntegral m2
+        v1  = fromIntegral <$> SV (s10, s11, s12)
+        v2  = fromIntegral <$> SV (s20, s21, s22)
+        (b1,b2) = jmtxsW64 !! (e-1)
+        w1  = vecTrModW64 m1' b1 v1
+        w2  = vecTrModW64 m2' b2 v2
+        SV (t10,t11,t12) = fromIntegral <$> w1
+        SV (t20,t21,t22) = fromIntegral <$> w2
+
+{-
+jump :: Int -> Gen -> Gen
+jump e g@(Gen (s10,s11,s12,s20,s21,s22))
   | e > 64    = error "Jump factor must be smaller than 64."
   | e == 0    = g
   | otherwise = Gen (t10,t11,t12,t20,t21,t22)
@@ -220,6 +236,7 @@ jump e g@(Gen (s10,s11,s12,s20,s21,s22))
         w2 = vecTrOn m2' (toInteger <$> b2) v2
         SV (t10,t11,t12) = fromIntegral <$> w1
         SV (t20,t21,t22) = fromIntegral <$> w2
+-}
 
 mtx1 :: JumpMatrix Int64
 mtx1 = JM (0, 1, 0) (0, 0, 1) (m1 - a13n, a12, 0)
@@ -232,6 +249,17 @@ cntdn _ (_, 0) = Nothing
 cntdn f (x, k) = Just (y, (y, k-1))
   where y = f x
 
+jmtxsW64 :: [(JumpMatrix Word64, JumpMatrix Word64)]
+jmtxsW64 = zip xs ys
+  where n = 64
+        m1' = fromIntegral m1 :: Word64
+        m2' = fromIntegral m2 :: Word64
+        mtx1' = fromIntegral <$> mtx1
+        xs = unfoldr (cntdn (matSqrModW64 m1')) (mtx1',n)
+        mtx2' = fromIntegral <$> mtx2
+        ys = unfoldr (cntdn (matSqrModW64 m2')) (mtx2',n)
+
+{-
 jmtxs :: [(JumpMatrix Int64,JumpMatrix Int64)]
 jmtxs = zip (map (fromIntegral <$>) xs) (map (fromIntegral <$>) ys)
   where n = 64
@@ -241,5 +269,6 @@ jmtxs = zip (map (fromIntegral <$>) xs) (map (fromIntegral <$>) ys)
         xs = unfoldr (cntdn (matSqrOn m1')) (mtx1',n)
         mtx2' = fromIntegral <$> mtx2
         ys = unfoldr (cntdn (matSqrOn m2')) (mtx2',n)
+-}
 
 -- EOF

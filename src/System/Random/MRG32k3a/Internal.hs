@@ -100,8 +100,8 @@ jmtxs :: [(JumpMatrix Word32,JumpMatrix Word32)]
 jmtxs = zip (map (fromIntegral <$>) xs) (map (fromIntegral <$>) ys)
   where n = 64
         mtx1' = fromIntegral <$> mtx1
-        xs = unfoldr (cntdn (matSqrOn m1)) (mtx1',n)
+        xs = unfoldr (cntdn (matSqrMod m1)) (mtx1',n)
         mtx2' = fromIntegral <$> mtx2
-        ys = unfoldr (cntdn (matSqrOn m2)) (mtx2',n)
+        ys = unfoldr (cntdn (matSqrMod m2)) (mtx2',n)
 
 -- EOF
