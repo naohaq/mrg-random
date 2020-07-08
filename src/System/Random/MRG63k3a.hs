@@ -39,6 +39,7 @@ mrg63k3a_genRand (Gen s@(_ ,s11,s12,_ ,s21,s22))
   = (v, Gen (s11,s12,t1,s21,s22,t2))
   where (t1,t2) = mrg63k3a_rec s
         v = if t1 > t2 then t1 - t2 else t1 - t2 + m1
+{-# INLINE mrg63k3a_genRand #-}
 
 initialize :: (Integral a) => a -> Gen
 initialize seed = Gen (s1,s1,s1,s2,s2,s2)

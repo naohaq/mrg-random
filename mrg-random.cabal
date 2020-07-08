@@ -20,6 +20,7 @@ library
   exposed-modules: System.Random.MRG32k3a
                  , System.Random.MRG32k3a.Stateful
                  , System.Random.MRG63k3a
+                 , System.Random.MRG63k3a.Stateful
   other-modules: System.Random.MRG.Internal
                , System.Random.MRG32k3a.Internal
                , System.Random.MRG63k3a.Internal
