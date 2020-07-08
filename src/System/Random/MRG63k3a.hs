@@ -221,23 +221,6 @@ jump e g@(Gen (s10,s11,s12,s20,s21,s22))
         SV (t10,t11,t12) = fromIntegral <$> w1
         SV (t20,t21,t22) = fromIntegral <$> w2
 
-{-
-jump :: Int -> Gen -> Gen
-jump e g@(Gen (s10,s11,s12,s20,s21,s22))
-  | e > 64    = error "Jump factor must be smaller than 64."
-  | e == 0    = g
-  | otherwise = Gen (t10,t11,t12,t20,t21,t22)
-  where m1' = toInteger m1
-        m2' = toInteger m2
-        v1 = toInteger <$> SV (s10, s11, s12)
-        v2 = toInteger <$> SV (s20, s21, s22)
-        (b1,b2) = jmtxs !! (e-1)
-        w1 = vecTrOn m1' (toInteger <$> b1) v1
-        w2 = vecTrOn m2' (toInteger <$> b2) v2
-        SV (t10,t11,t12) = fromIntegral <$> w1
-        SV (t20,t21,t22) = fromIntegral <$> w2
--}
-
 mtx1 :: JumpMatrix Int64
 mtx1 = JM (0, 1, 0) (0, 0, 1) (m1 - a13n, a12, 0)
 
@@ -258,17 +241,5 @@ jmtxsW64 = zip xs ys
         xs = unfoldr (cntdn (matSqrModW64 m1')) (mtx1',n)
         mtx2' = fromIntegral <$> mtx2
         ys = unfoldr (cntdn (matSqrModW64 m2')) (mtx2',n)
-
-{-
-jmtxs :: [(JumpMatrix Int64,JumpMatrix Int64)]
-jmtxs = zip (map (fromIntegral <$>) xs) (map (fromIntegral <$>) ys)
-  where n = 64
-        m1' = fromIntegral m1 :: Integer
-        m2' = fromIntegral m2 :: Integer
-        mtx1' = fromIntegral <$> mtx1
-        xs = unfoldr (cntdn (matSqrOn m1')) (mtx1',n)
-        mtx2' = fromIntegral <$> mtx2
-        ys = unfoldr (cntdn (matSqrOn m2')) (mtx2',n)
--}
 
 -- EOF
