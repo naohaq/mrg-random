@@ -69,6 +69,12 @@ mulModW64 m x y = go $ x `mulW64` y
           where rl        = wl `mod` m
                 rh        = wh `mod` m
                 (rlh,rll) = splitW64 rl
+                -- b  = p *m + s
+                -- ah = qh*m + rh
+                -- al = ql*m + rl
+                -- ah*b + al
+                --    = (qh*m + rh)*(p*m + s) + ql*m + rl
+                --    = (qh*m*p + qh*s + rh*p + ql)*m + rh*s + rl
                 (zh ,zl ) = rh `mulW64` s'
                 (zlh,zll) = splitW64 zl
                 t0        = rll + zll
