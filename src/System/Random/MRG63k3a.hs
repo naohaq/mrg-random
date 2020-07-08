@@ -208,7 +208,7 @@ restore (Seed (t1,t2,t3,t4,t5,t6)) = Gen (s10,s11,s12,s20,s21,s22)
 
 jump :: Int -> Gen -> Gen
 jump e g@(Gen (s10,s11,s12,s20,s21,s22))
-  | e > 64 || e < 0 = error "Jump fuctor must be in the range of [0,64]"
+  | e > 64 || e < 0 = error "Jump factor must be in the range of [0,64]"
   | e == 0          = g
   | otherwise       = Gen (t10,t11,t12,t20,t21,t22)
   where m1' = fromIntegral m1
