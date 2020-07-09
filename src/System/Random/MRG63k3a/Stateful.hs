@@ -9,11 +9,15 @@ module System.Random.MRG63k3a.Stateful
     , initialize
     , uniform01M
 
+    , GenIO
+    , GenST
+
     , Seed
     , fromSeed
     ) where
 
 import Control.Monad.Primitive (PrimMonad, PrimState, unsafeSTToPrim)
+import Control.Monad.ST        (ST)
 import qualified Data.Primitive.PrimArray as P
 import Data.Typeable           (Typeable)
 import Data.Int                (Int64)
@@ -25,6 +29,10 @@ import System.Random.MRG63k3a.Internal
 import System.Random.Stateful
 
 newtype Gen s = Gen (P.MutablePrimArray s Int64)
+
+type GenIO = Gen (PrimState IO)
+
+type GenST s = Gen (PrimState (ST s))
 
 newtype T6 a = T6 { fromT6 :: (a,a,a,a,a,a) }
 
