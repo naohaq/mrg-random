@@ -36,6 +36,7 @@ import Data.Int                (Int64)
 import Data.Word
 import Data.Bits               ((.&.),(.|.),shiftL)
 
+import System.Random.MRG.Internal
 import System.Random.MRG63k3a.Internal
 
 import System.Random.Stateful
@@ -45,11 +46,6 @@ newtype Gen s = Gen (P.MutablePrimArray s Int64)
 type GenIO = Gen (PrimState IO)
 
 type GenST s = Gen (PrimState (ST s))
-
-newtype T6 a = T6 { fromT6 :: (a,a,a,a,a,a) }
-
-instance Functor T6 where
-  fmap f (T6 (x1,x2,x3,x4,x5,x6)) = T6 (f x1, f x2, f x3, f x4, f x5, f x6)
 
 instance (s ~ PrimState m, PrimMonad m) => StatefulGen (Gen s) m where
   uniformWord32 = uniformW32

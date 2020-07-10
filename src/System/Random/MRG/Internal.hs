@@ -6,6 +6,8 @@ module System.Random.MRG.Internal
     StateVector(..)
   , JumpMatrix(..)
 
+  , T6(..)
+
   , vecTrMod
   , matMulMod
   , matSqrMod
@@ -17,6 +19,11 @@ module System.Random.MRG.Internal
 
 import Data.Word (Word64)
 import Data.Bits (shiftL, shiftR, (.&.), (.|.))
+
+newtype T6 a = T6 { fromT6 :: (a,a,a,a,a,a) }
+
+instance Functor T6 where
+  fmap f (T6 (x1,x2,x3,x4,x5,x6)) = T6 (f x1, f x2, f x3, f x4, f x5, f x6)
 
 data StateVector a = SV (a,a,a) deriving (Show,Eq)
 data JumpMatrix a = JM (a,a,a) (a,a,a) (a,a,a) deriving (Show,Eq)

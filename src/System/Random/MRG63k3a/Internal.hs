@@ -156,8 +156,8 @@ jmtxs = zip xs ys
         m1' = fromIntegral m1 :: Word64
         m2' = fromIntegral m2 :: Word64
         mtx1' = fromIntegral <$> mtx1
-        xs = unfoldr (cntdn (matSqrModW64 m1')) (mtx1',n)
+        xs = mtx1' : unfoldr (cntdn (matSqrModW64 m1')) (mtx1',n)
         mtx2' = fromIntegral <$> mtx2
-        ys = unfoldr (cntdn (matSqrModW64 m2')) (mtx2',n)
+        ys = mtx2' : unfoldr (cntdn (matSqrModW64 m2')) (mtx2',n)
 
 -- EOF
