@@ -1,8 +1,20 @@
-{- -*- mode: haskell; coding: utf-8-unix -*-  -}
-{-# LANGUAGE BangPatterns, DeriveDataTypeable, FlexibleContexts,
-    FlexibleInstances, MultiParamTypeClasses, ScopedTypeVariables,
-    TypeFamilies #-}
-
+{- -*- mode: haskell; coding: utf-8-unix -*- -}
+{-# LANGUAGE BangPatterns             #-}
+{-# LANGUAGE DeriveDataTypeable       #-}
+{-# LANGUAGE FlexibleContexts         #-}
+{-# LANGUAGE FlexibleInstances        #-}
+{-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE ScopedTypeVariables      #-}
+{-# LANGUAGE TypeFamilies             #-}
+-- |
+-- Module    : System.Random.MRG63k3a.Stateful
+-- Copyright : (c) 2020 Naoyuki MORITA
+-- License   : BSD3
+--
+-- Maintainer  : naoyuki.morita@gmail.com
+-- Stability   : experimental
+-- Portability : portable
+--
 module System.Random.MRG63k3a.Stateful
     (
       Gen

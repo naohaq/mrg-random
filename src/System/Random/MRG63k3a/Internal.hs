@@ -1,5 +1,5 @@
-{- -*- mode: haskell; coding: utf-8-unix -*-  -}
-{-# LANGUAGE BangPatterns #-}
+{- -*- mode: haskell; coding: utf-8-unix -*- -}
+{-# LANGUAGE BangPatterns             #-}
 
 module System.Random.MRG63k3a.Internal
     (
