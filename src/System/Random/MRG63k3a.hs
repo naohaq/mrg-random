@@ -10,18 +10,33 @@
 -- Stability   : experimental
 -- Portability : portable
 --
+-- Pseudo-random number generation with MRG63k3a.
+--
+-- The generator type 'Gen' is an instance of 'RandomGen' type class, so
+-- it can be used through 'RandomGen' intreface functions such like,
+--
+-- @
+--   >>> let g = 'initialize' (1234567 :: Int)
+--   >>> let (x, g') = 'uniform' g :: (Word32, Gen) in x
+--   2246106302
+-- @
+--
 module System.Random.MRG63k3a
     (
+    -- * Gen: Pseudo-Random Number Generators
       Gen
     , initialize
 
+    -- * Unitility functions
     , uniform01
 
+    -- * Seed: state management
     , Seed
     , fromSeed
     , save
     , restore
 
+    -- * Stream jumping
     , jump
     ) where
 
@@ -35,6 +50,7 @@ import System.Random
 import System.Random.MRG.Internal
 import System.Random.MRG63k3a.Internal
 
+-- | The generator type.
 data Gen = Gen (Int64,Int64,Int64,Int64,Int64,Int64)
 
 instance RandomGen Gen where
@@ -49,12 +65,14 @@ mrg63k3a_genRand (Gen s@(_ ,s11,s12,_ ,s21,s22))
         v = if t1 > t2 then t1 - t2 else t1 - t2 + m1
 {-# INLINE mrg63k3a_genRand #-}
 
+-- | Create a generator using given seed.
 initialize :: (Integral a) => a -> Gen
 initialize seed = Gen (s1,s1,s1,s2,s2,s2)
   where s1 = fromIntegral seed `mod` m1
         s2 = fromIntegral seed `mod` m2
 {-# INLINE initialize #-}
 
+-- | Get a random value following U(0,1).
 uniform01 :: Gen -> (Double, Gen)
 uniform01 gen = (w,gen')
   where (v,gen') = mrg63k3a_genRand gen
@@ -73,14 +91,20 @@ uniformW32 gen = go gen
           where (x,g') = mrg63k3a_genRand g
 {-# INLINE uniformW32 #-}
 
-newtype Seed = Seed { fromSeed :: (Word64,Word64,Word64,Word64,Word64,Word64) }
+-- | An immutable snapshot of the state of a 'Gen'.
+newtype Seed = Seed {
+  -- | Convert seed into a 6-tuple of @Word64@.
+  fromSeed :: (Word64,Word64,Word64,Word64,Word64,Word64)
+  }
   deriving (Eq, Show, Typeable)
 
+-- | Save the state of a 'Gen'. Saved state can be used by 'restore'.
 save :: Gen -> Seed
 save (Gen s) = Seed (fromT6 t)
   where t = fromIntegral <$> T6 s
 {-# INLINE save #-}
 
+-- | Create a new 'Gen' that mirrors the state of a saved 'Seed'.
 restore :: Seed -> Gen
 restore (Seed (t1,t2,t3,t4,t5,t6)) = Gen (fromT6 s)
   where m1' = fromIntegral m1
@@ -90,6 +114,18 @@ restore (Seed (t1,t2,t3,t4,t5,t6)) = Gen (fromT6 s)
         s   = fromIntegral <$> t
 {-# INLINE restore #-}
 
+-- | Get a new generator jumps ahead by \(2^n\) steps from given generator.
+--
+-- @
+--   >>> let g0 = initialize (1234567 :: Int)
+--   >>> let g1 = jump 20 g0
+--   >>> let xs = unfoldr (Just . uniform01) g0
+--   >>> let ys = unfoldr (Just . uniform01) g1
+--   >>> take 10 $ drop 1048576 xs
+--   [0.8661862534637614,0.32299545841103733,0.7545203812431158,0.6829503373808978,0.7938803872652808,0.3453801891716969,0.199924353479426,0.7548724584148777,0.4533723232806143,0.855651888940174]
+--   >>> take 10 ys
+--   [0.8661862534637614,0.32299545841103733,0.7545203812431158,0.6829503373808978,0.7938803872652808,0.3453801891716969,0.199924353479426,0.7548724584148777,0.4533723232806143,0.855651888940174]
+-- @
 jump :: Int -> Gen -> Gen
 jump e (Gen (s10,s11,s12,s20,s21,s22))
   | e > 64 || e < 0 = error "Jump factor must be in the range of [0,64]"
