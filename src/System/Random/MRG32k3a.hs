@@ -16,7 +16,7 @@
 -- it can be used through 'RandomGen' intreface functions such like,
 --
 -- @
---   >>> let g = 'initialize' (12345 :: Int)
+--   >>> let g = 'initialize' 12345
 --   >>> let (x, g') = 'uniform' g :: (Word32, Gen) in x
 --   3320887301
 -- @
@@ -89,7 +89,7 @@ uniformW32 g = if x >= ub
 {-# INLINE uniformW32 #-}
 
 -- | Create a generator using given seed.
-initialize :: (Integral a) => a -> Gen
+initialize :: Word32 -> Gen
 initialize seed = Gen (s1,s1,s1,s2,s2,s2)
   where s' = fromIntegral seed
         s1 = fromIntegral $ s' `mod` m1

@@ -16,7 +16,7 @@
 -- it can be used through 'RandomGen' intreface functions such like,
 --
 -- @
---   >>> let g = 'initialize' (1234567 :: Int)
+--   >>> let g = 'initialize' 1234567
 --   >>> let (x, g') = 'uniform' g :: (Word32, Gen) in x
 --   2246106302
 -- @
@@ -66,10 +66,10 @@ mrg63k3a_genRand (Gen s@(_ ,s11,s12,_ ,s21,s22))
 {-# INLINE mrg63k3a_genRand #-}
 
 -- | Create a generator using given seed.
-initialize :: (Integral a) => a -> Gen
+initialize :: Int64 -> Gen
 initialize seed = Gen (s1,s1,s1,s2,s2,s2)
-  where s1 = fromIntegral seed `mod` m1
-        s2 = fromIntegral seed `mod` m2
+  where s1 = seed `mod` m1
+        s2 = seed `mod` m2
 {-# INLINE initialize #-}
 
 -- | Get a random value following U(0,1).
