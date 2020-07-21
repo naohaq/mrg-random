@@ -117,7 +117,7 @@ restore (Seed (t1,t2,t3,t4,t5,t6)) = Gen (fromT6 s)
 -- | Get a new generator jumps ahead by \(2^n\) steps from given generator.
 --
 -- @
---   >>> let g0 = initialize (1234567 :: Int)
+--   >>> let g0 = initialize 1234567
 --   >>> let g1 = jump 20 g0
 --   >>> let xs = unfoldr (Just . uniform01) g0
 --   >>> let ys = unfoldr (Just . uniform01) g1
