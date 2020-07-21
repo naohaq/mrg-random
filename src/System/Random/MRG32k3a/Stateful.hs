@@ -108,7 +108,7 @@ uniformW32 gen = go
           if x >= ub then go else return (fromIntegral (x .&. 4294967295))
 {-# INLINE uniformW32 #-}
 
-initialize :: (PrimMonad m, Integral a) => a -> m (Gen (PrimState m))
+initialize :: (PrimMonad m) => Word32 -> m (Gen (PrimState m))
 initialize seed = do
     let s' = fromIntegral seed
         s1 = fromIntegral $ s' `mod` m1

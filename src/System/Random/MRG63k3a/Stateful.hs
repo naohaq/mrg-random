@@ -108,11 +108,10 @@ uniformW32 gen = go
           if v >= ub then go else return (fromIntegral (v .&. 4294967295))
 {-# INLINE uniformW32 #-}
 
-initialize :: (PrimMonad m, Integral a) => a -> m (Gen (PrimState m))
+initialize :: (PrimMonad m) => Int64 -> m (Gen (PrimState m))
 initialize seed = do
-    let s' = fromIntegral seed
-        s1 = fromIntegral $ s' `mod` m1
-        s2 = fromIntegral $ s' `mod` m2
+    let s1 = seed `mod` m1
+        s2 = seed `mod` m2
     ary <- P.newPrimArray 6
     writeState ary (s1,s1,s1,s2,s2,s2)
     return $ Gen ary
