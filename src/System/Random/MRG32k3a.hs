@@ -16,10 +16,17 @@
 -- it can be used through 'RandomGen' intreface functions such like,
 --
 -- @
---   >>> let g = 'initialize' 12345
---   >>> let (x, g') = 'uniform' g :: (Word32, Gen) in x
+--   > let g = 'initialize' 12345
+--   > let (x, g') = 'uniform' g :: (Word32, Gen) in x
 --   3320887301
 -- @
+--
+-- __Notice:__ MRG32k3a is originally designed to generate random numbers
+-- following U(0,1). It DOES NOT generate exactly 32-bit information at a
+-- time.
+--
+-- If you need U(0,1) random numbers, use 'uniform01' that generates a
+-- random value efficiently by original MRG32k3a algorithm.
 --
 module System.Random.MRG32k3a
     (
@@ -122,13 +129,13 @@ restore (Seed (t1,t2,t3,t4,t5,t6)) = Gen (fromT6 s)
 -- | Get a new generator jumps ahead by \(2^n\) steps from given generator.
 --
 -- @
---   >>> let g0 = initialize (12345 :: Int)
---   >>> let g1 = jump 20 g0
---   >>> let xs = unfoldr (Just . uniform01) g0
---   >>> let ys = unfoldr (Just . uniform01) g1
---   >>> take 10 $ drop 1048576 xs
+--   > let g0 = 'initialize' 12345
+--   > let g1 = 'jump' 20 g0
+--   > let xs = unfoldr (Just . 'uniform01') g0
+--   > let ys = unfoldr (Just . 'uniform01') g1
+--   > take 10 $ drop 1048576 xs
 --   [0.42963674510001276,0.10482156807623948,0.9889648413995019,0.785875227875553,0.9522150221887802,0.9792979233185687,0.8713777766671446,0.9231321178403405,0.13047652927672448,0.5395971153015737]
---   >>> take 10 $ ys
+--   > take 10 $ ys
 --   [0.42963674510001276,0.10482156807623948,0.9889648413995019,0.785875227875553,0.9522150221887802,0.9792979233185687,0.8713777766671446,0.9231321178403405,0.13047652927672448,0.5395971153015737]
 -- @
 jump :: Int -> Gen -> Gen

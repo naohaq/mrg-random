@@ -15,15 +15,40 @@
 -- Stability   : experimental
 -- Portability : portable
 --
+-- Pseudo-random number generation with MRG32k3a (monadic interface).
+--
+-- The generator type 'Gen' is an instance of 'StatefulGen' type class, so
+-- it can be used through 'StatefulGen' intreface functions such like,
+--
+-- @
+--   > gen \<- 'initialize' 12345
+--   > replicateM 10 ('uniformM' gen) :: IO [Word32]
+--   [3320887301,884645991,913733706,3752754456,1435703647,511136538,160968264,1722383799,2355335811,690051551]
+--   > replicateM 10 ('uniformM' gen) :: IO [Word32]
+--   [2969339749,1695849133,1356079654,2439569495,4195450174,664833117,1860624843,3302720735,962971476,547363651]
+-- @
+--
+-- __Notice:__ MRG32k3a is originally designed to generate random numbers
+-- following U(0,1). It DOES NOT generate exactly 32-bit information at a
+-- time.
+--
+-- If you need U(0,1) random numbers, use 'uniform01M' that generates a
+-- random value efficiently by original MRG32k3a algorithm.
+--
 module System.Random.MRG32k3a.Stateful
     (
+    -- * Gen: Pseudo-Random Number Generators
       Gen
     , initialize
-    , uniform01M
 
+    -- ** Type helpers
     , GenIO
     , GenST
 
+    -- * Unitility functions
+    , uniform01M
+
+    -- * Seed: state management
     , Seed
     , fromSeed
     ) where
@@ -40,10 +65,15 @@ import System.Random.MRG32k3a.Internal
 
 import System.Random.Stateful
 
+-- | State of the pseudo-random number generator. It uses mutable
+-- state so same generator shouldn't be used from the different
+-- threads simultaneously.
 newtype Gen s = Gen (P.MutablePrimArray s Double)
 
+-- | A shorter name for PRNG state in the 'IO' monad.
 type GenIO = Gen (PrimState IO)
 
+-- | A shorter name for PRNG state in the 'ST' monad.
 type GenST s = Gen (PrimState (ST s))
 
 instance (s ~ PrimState m, PrimMonad m) => StatefulGen (Gen s) m where
@@ -89,6 +119,7 @@ mrg32k3a_genRand (Gen ary) = do
     return v
 {-# INLINE mrg32k3a_genRand #-}
 
+-- | Get a random value following U(0,1).
 uniform01M :: (PrimMonad m) => Gen (PrimState m) -> m Double
 uniform01M g = (* norm) <$> mrg32k3a_genRand g
 {-# INLINE uniform01M #-}
@@ -108,6 +139,7 @@ uniformW32 gen = go
           if x >= ub then go else return (fromIntegral (x .&. 4294967295))
 {-# INLINE uniformW32 #-}
 
+-- | Create a generator using given seed.
 initialize :: (PrimMonad m) => Word32 -> m (Gen (PrimState m))
 initialize seed = do
     let s' = fromIntegral seed
@@ -118,7 +150,11 @@ initialize seed = do
     return $ Gen ary
 {-# INLINE initialize #-}
 
-newtype Seed = Seed { fromSeed :: (Word32,Word32,Word32,Word32,Word32,Word32) }
+-- | An immutable snapshot of the state of a 'Gen'.
+newtype Seed = Seed {
+  -- | Convert seed into a 6-tuple of @Word32@.
+  fromSeed :: (Word32,Word32,Word32,Word32,Word32,Word32)
+  }
   deriving (Eq, Show, Typeable)
 
 save :: (PrimMonad m) => Gen (PrimState m) -> m Seed

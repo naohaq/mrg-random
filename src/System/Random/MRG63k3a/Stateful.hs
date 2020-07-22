@@ -15,15 +15,33 @@
 -- Stability   : experimental
 -- Portability : portable
 --
+-- Pseudo-random number generation with MRG63k3a (monadic interface).
+--
+-- The generator type 'Gen' is an instance of 'StatefulGen' type class, so
+-- it can be used through 'StatefulGen' intreface functions such like,
+--
+-- @
+--   > gen \<- 'initialize' 1234567
+--   > replicateM 10 ('uniformM' gen) :: IO [Word32]
+--   [2246106302,1563963788,2439712072,3737154441,2667077669,767817191,747111673,2638409746,3331088863,4075662417]
+--   > replicateM 10 ('uniformM' gen) :: IO [Word32]
+--   [1456421684,2935764772,936846699,649810874,4215441082,311517124,1039486180,751453058,3053799799,1547236802]
+-- @
+--
 module System.Random.MRG63k3a.Stateful
     (
+    -- * Gen: Pseudo-Random Number Generators
       Gen
     , initialize
-    , uniform01M
 
+    -- ** Type helpers
     , GenIO
     , GenST
 
+    -- * Unitility functions
+    , uniform01M
+
+    -- * Seed: state management
     , Seed
     , fromSeed
     ) where
@@ -41,10 +59,15 @@ import System.Random.MRG63k3a.Internal
 
 import System.Random.Stateful
 
+-- | State of the pseudo-random number generator. It uses mutable
+-- state so same generator shouldn't be used from the different
+-- threads simultaneously.
 newtype Gen s = Gen (P.MutablePrimArray s Int64)
 
+-- | A shorter name for PRNG state in the 'IO' monad.
 type GenIO = Gen (PrimState IO)
 
+-- | A shorter name for PRNG state in the 'ST' monad.
 type GenST s = Gen (PrimState (ST s))
 
 instance (s ~ PrimState m, PrimMonad m) => StatefulGen (Gen s) m where
@@ -92,6 +115,7 @@ mrg63k3a_genRand (Gen ary) = do
     return v
 {-# INLINE mrg63k3a_genRand #-}
 
+-- | Get a random value following U(0,1).
 uniform01M :: (PrimMonad m) => Gen (PrimState m) -> m Double
 uniform01M g = (* norm) <$> fromIntegral <$> mrg63k3a_genRand g
 {-# INLINE uniform01M #-}
@@ -108,6 +132,7 @@ uniformW32 gen = go
           if v >= ub then go else return (fromIntegral (v .&. 4294967295))
 {-# INLINE uniformW32 #-}
 
+-- | Create a generator using given seed.
 initialize :: (PrimMonad m) => Int64 -> m (Gen (PrimState m))
 initialize seed = do
     let s1 = seed `mod` m1
@@ -117,7 +142,11 @@ initialize seed = do
     return $ Gen ary
 {-# INLINE initialize #-}
 
-newtype Seed = Seed { fromSeed :: (Word64,Word64,Word64,Word64,Word64,Word64)}
+-- | An immutable snapshot of the state of a 'Gen'.
+newtype Seed = Seed {
+  -- | Convert seed into a 6-tuple of @Word64@.
+  fromSeed :: (Word64,Word64,Word64,Word64,Word64,Word64)
+  }
   deriving (Eq, Show, Typeable)
 
 save :: (PrimMonad m) => Gen (PrimState m) -> m Seed

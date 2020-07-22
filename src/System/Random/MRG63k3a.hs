@@ -16,8 +16,8 @@
 -- it can be used through 'RandomGen' intreface functions such like,
 --
 -- @
---   >>> let g = 'initialize' 1234567
---   >>> let (x, g') = 'uniform' g :: (Word32, Gen) in x
+--   > let g = 'initialize' 1234567
+--   > let (x, g') = 'uniform' g :: (Word32, Gen) in x
 --   2246106302
 -- @
 --
