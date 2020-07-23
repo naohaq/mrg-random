@@ -48,7 +48,7 @@ module System.Random.MRG32k3a
     ) where
 
 import Data.Typeable (Typeable)
-import Data.Word (Word32,Word64)
+import Data.Word (Word8, Word16, Word32, Word64)
 import Data.Bits ((.&.))
 
 import System.Random
@@ -61,6 +61,8 @@ newtype Gen = Gen (Double,Double,Double,Double,Double,Double)
 
 instance RandomGen Gen where
   genWord32 = uniformW32
+  genWord16 = uniformW16
+  genWord8  = uniformW8
   split _ = error "Not yet implemented."
 
 mrg32k3a_genRand :: Gen -> (Double,Gen)
@@ -77,15 +79,15 @@ uniform01 g = (w, g')
         (!v,!g') = mrg32k3a_genRand g
 {-# INLINE uniform01 #-}
 
-ub :: Word64
-ub = v
+ub32 :: Word64
+ub32 = v
   where !m1sq = m1 * m1
         !r = m1sq `mod` 4294967296
         !v = m1sq - r
-{-# INLINE ub #-}
+{-# INLINE ub32 #-}
 
 uniformW32 :: Gen -> (Word32,Gen)
-uniformW32 g = if x >= ub
+uniformW32 g = if x >= ub32
                then uniformW32 g1
                else (fromIntegral (x .&. 4294967295), g1)
   where (v0,g0) = mrg32k3a_genRand g
@@ -94,6 +96,38 @@ uniformW32 g = if x >= ub
         w1 = floor v1 :: Word64
         x = w0 * m1 + w1
 {-# INLINE uniformW32 #-}
+
+ub16 :: Word64
+ub16 = v
+  where !r = m1 `mod` 65536
+        !v = m1 - r
+{-# INLINE ub16 #-}
+
+uniformW16 :: Gen -> (Word16,Gen)
+uniformW16 gen = go gen
+  where go g = if x > ub16
+               then go g'
+               else (y, g')
+          where (v, g') = mrg32k3a_genRand g
+                x = floor v :: Word64
+                !y = fromIntegral (x .&. 65535)
+{-# INLINE uniformW16 #-}
+
+ub8 :: Word64
+ub8 = v
+  where !r = m1 `mod` 256
+        !v = m1 - r
+{-# INLINE ub8 #-}
+
+uniformW8 :: Gen -> (Word8,Gen)
+uniformW8 gen = go gen
+  where go g = if x > ub8
+               then go g'
+               else (y, g')
+          where (v, g') = mrg32k3a_genRand g
+                x = floor v :: Word64
+                !y = fromIntegral (x .&. 255)
+{-# INLINE uniformW8 #-}
 
 -- | Create a generator using given seed.
 initialize :: Word32 -> Gen
