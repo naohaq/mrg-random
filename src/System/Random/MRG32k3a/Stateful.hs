@@ -78,11 +78,16 @@ type GenST s = Gen (PrimState (ST s))
 
 instance (s ~ PrimState m, PrimMonad m) => StatefulGen (Gen s) m where
   uniformWord32 = uniformW32
+  uniformWord16 = uniformW16
+  uniformWord8  = uniformW8
   uniformShortByteString n g = unsafeSTToPrim (genShortByteStringST n go)
     where go = do
             x0 <- uniformW32 g
             x1 <- uniformW32 g
             pure $ (fromIntegral x0 `shiftL` 32) .|. fromIntegral x1
+  {-# INLINE uniformWord32 #-}
+  {-# INLINE uniformWord16 #-}
+  {-# INLINE uniformWord8  #-}
 
 instance (PrimMonad m) => FrozenGen Seed m where
   type MutableGen Seed m = Gen (PrimState m)
@@ -124,11 +129,11 @@ uniform01M :: (PrimMonad m) => Gen (PrimState m) -> m Double
 uniform01M g = (* norm) <$> mrg32k3a_genRand g
 {-# INLINE uniform01M #-}
 
-ub :: Word64
-ub = m1sq - r
+ub32 :: Word64
+ub32 = m1sq - r
   where !m1sq = m1 * m1
         !r = m1sq `mod` 4294967296
-{-# INLINE ub #-}
+{-# INLINE ub32 #-}
 
 uniformW32 :: (PrimMonad m) => Gen (PrimState m) -> m Word32
 uniformW32 gen = go
@@ -136,8 +141,34 @@ uniformW32 gen = go
           v0 <- floor <$> mrg32k3a_genRand gen
           v1 <- floor <$> mrg32k3a_genRand gen
           let x = v0 * m1 + v1
-          if x >= ub then go else return (fromIntegral (x .&. 4294967295))
+          if x >= ub32 then go else return (fromIntegral (x .&. 4294967295))
 {-# INLINE uniformW32 #-}
+
+ub16 :: Word64
+ub16 = v
+  where !r = m1 `mod` 65536
+        !v = m1 - r
+{-# INLINE ub16 #-}
+
+uniformW16 :: (PrimMonad m) => Gen (PrimState m) -> m Word16
+uniformW16 gen = go
+  where go = do
+          x <- floor <$> mrg32k3a_genRand gen
+          if x >= ub16 then go else return (fromIntegral (x .&. 65535))
+{-# INLINE uniformW16 #-}
+
+ub8 :: Word64
+ub8 = v
+  where !r = m1 `mod` 256
+        !v = m1 - r
+{-# INLINE ub8 #-}
+
+uniformW8 :: (PrimMonad m) => Gen (PrimState m) -> m Word8
+uniformW8 gen = go
+  where go = do
+          x <- floor <$> mrg32k3a_genRand gen
+          if x >= ub8 then go else return (fromIntegral (x .&. 255))
+{-# INLINE uniformW8 #-}
 
 -- | Create a generator using given seed.
 initialize :: (PrimMonad m) => Word32 -> m (Gen (PrimState m))

@@ -64,6 +64,9 @@ instance RandomGen Gen where
   genWord16 = uniformW16
   genWord8  = uniformW8
   split _ = error "Not yet implemented."
+  {-# INLINE genWord32 #-}
+  {-# INLINE genWord16 #-}
+  {-# INLINE genWord8  #-}
 
 mrg32k3a_genRand :: Gen -> (Double,Gen)
 mrg32k3a_genRand (Gen s@(_ ,s11,s12,_ ,s21,s22))
@@ -105,7 +108,7 @@ ub16 = v
 
 uniformW16 :: Gen -> (Word16,Gen)
 uniformW16 gen = go gen
-  where go g = if x > ub16
+  where go g = if x >= ub16
                then go g'
                else (y, g')
           where (v, g') = mrg32k3a_genRand g
@@ -121,7 +124,7 @@ ub8 = v
 
 uniformW8 :: Gen -> (Word8,Gen)
 uniformW8 gen = go gen
-  where go g = if x > ub8
+  where go g = if x >= ub8
                then go g'
                else (y, g')
           where (v, g') = mrg32k3a_genRand g

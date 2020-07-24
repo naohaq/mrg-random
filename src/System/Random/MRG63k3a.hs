@@ -42,7 +42,7 @@ module System.Random.MRG63k3a
 
 import Data.Typeable (Typeable)
 import Data.Int  (Int64)
-import Data.Word (Word32,Word64)
+import Data.Word (Word8,Word16,Word32,Word64)
 import Data.Bits ((.&.))
 
 import System.Random
@@ -55,8 +55,12 @@ data Gen = Gen (Int64,Int64,Int64,Int64,Int64,Int64)
 
 instance RandomGen Gen where
   genWord32 = uniformW32
+  genWord16 = uniformW16
+  genWord8  = uniformW8
   split _ = error "Not yet implemented."
   {-# INLINE genWord32 #-}
+  {-# INLINE genWord16 #-}
+  {-# INLINE genWord8  #-}
 
 mrg63k3a_genRand :: Gen -> (Int64,Gen)
 mrg63k3a_genRand (Gen s@(_ ,s11,s12,_ ,s21,s22))
@@ -79,17 +83,41 @@ uniform01 gen = (w,gen')
         !w = norm * fromIntegral v
 {-# INLINE uniform01 #-}
 
-ub :: Int64
-ub = v
+ub32 :: Int64
+ub32 = v
   where !r = m1 `mod` 4294967296
         !v = m1 - r
-{-# INLINE ub #-}
+{-# INLINE ub32 #-}
 
 uniformW32 :: Gen -> (Word32, Gen)
 uniformW32 gen = go gen
-  where go g = if x >= ub then go g' else (fromIntegral (x .&. 4294967295), g')
+  where go g = if x >= ub32 then go g' else (fromIntegral (x .&. 4294967295), g')
           where (x,g') = mrg63k3a_genRand g
 {-# INLINE uniformW32 #-}
+
+ub16 :: Int64
+ub16 = v
+  where !r = m1 `mod` 65536
+        !v = m1 - r
+{-# INLINE ub16 #-}
+
+uniformW16 :: Gen -> (Word16, Gen)
+uniformW16 gen = go gen
+  where go g = if x >= ub16 then go g' else (fromIntegral (x .&. 65535), g')
+          where (x, g') = mrg63k3a_genRand g
+{-# INLINE uniformW16 #-}
+
+ub8 :: Int64
+ub8 = v
+  where !r = m1 `mod` 256
+        !v = m1 - r
+{-# INLINE ub8 #-}
+
+uniformW8 :: Gen -> (Word8, Gen)
+uniformW8 gen = go gen
+  where go g = if x >= ub8 then go g' else (fromIntegral (x .&. 255), g')
+          where (x, g') = mrg63k3a_genRand g
+{-# INLINE uniformW8 #-}
 
 -- | An immutable snapshot of the state of a 'Gen'.
 newtype Seed = Seed {

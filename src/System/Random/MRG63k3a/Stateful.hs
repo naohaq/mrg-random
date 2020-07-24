@@ -72,12 +72,16 @@ type GenST s = Gen (PrimState (ST s))
 
 instance (s ~ PrimState m, PrimMonad m) => StatefulGen (Gen s) m where
   uniformWord32 = uniformW32
+  uniformWord16 = uniformW16
+  uniformWord8  = uniformW8
   uniformShortByteString n g = unsafeSTToPrim (genShortByteStringST n go)
     where go = do
             x0 <- uniformW32 g
             x1 <- uniformW32 g
             pure $ (fromIntegral x0 `shiftL` 32) .|. fromIntegral x1
   {-# INLINE uniformWord32 #-}
+  {-# INLINE uniformWord16 #-}
+  {-# INLINE uniformWord8  #-}
   {-# INLINE uniformShortByteString #-}
 
 instance (PrimMonad m) => FrozenGen Seed m where
@@ -120,17 +124,44 @@ uniform01M :: (PrimMonad m) => Gen (PrimState m) -> m Double
 uniform01M g = (* norm) <$> fromIntegral <$> mrg63k3a_genRand g
 {-# INLINE uniform01M #-}
 
-ub :: Int64
-ub = m1 - r
+ub32 :: Int64
+ub32 = v
   where !r = m1 `mod` 4294967296
-{-# INLINE ub #-}
+        !v = m1 - r
+{-# INLINE ub32 #-}
 
 uniformW32 :: (PrimMonad m) => Gen (PrimState m) -> m Word32
 uniformW32 gen = go
   where go = do
           v <- mrg63k3a_genRand gen
-          if v >= ub then go else return (fromIntegral (v .&. 4294967295))
+          if v >= ub32 then go else return (fromIntegral (v .&. 4294967295))
 {-# INLINE uniformW32 #-}
+
+ub16 :: Int64
+ub16 = v
+  where !r = m1 `mod` 65536
+        !v = m1 - r
+{-# INLINE ub16 #-}
+
+uniformW16 :: (PrimMonad m) => Gen (PrimState m) -> m Word16
+uniformW16 gen = go
+  where go = do
+          v <- mrg63k3a_genRand gen
+          if v >= ub16 then go else return (fromIntegral (v .&. 65535))
+{-# INLINE uniformW16 #-}
+
+ub8 :: Int64
+ub8 = v
+  where !r = m1 `mod` 256
+        !v = m1 - r
+{-# INLINE ub8 #-}
+
+uniformW8 :: (PrimMonad m) => Gen (PrimState m) -> m Word8
+uniformW8 gen = go
+  where go = do
+          v <- mrg63k3a_genRand gen
+          if v >= ub8 then go else return (fromIntegral (v .&. 255))
+{-# INLINE uniformW8 #-}
 
 -- | Create a generator using given seed.
 initialize :: (PrimMonad m) => Int64 -> m (Gen (PrimState m))
