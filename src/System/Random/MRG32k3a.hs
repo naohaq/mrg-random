@@ -10,7 +10,7 @@
 -- Stability   : experimental
 -- Portability : portable
 --
--- Pseudo-random number generation with MRG32k3a.
+-- Pseudo-random number generation with MRG32k3a [\[1\]](#lecuyer1999).
 --
 -- The generator type 'Gen' is an instance of 'RandomGen' type class, so
 -- it can be used through 'RandomGen' intreface functions such like,
@@ -45,6 +45,9 @@ module System.Random.MRG32k3a
 
     -- * Stream jumping
     , jump
+
+    -- * References
+    -- $references
     ) where
 
 import Data.Typeable (Typeable)
@@ -188,5 +191,11 @@ jump e (Gen (s10,s11,s12,s20,s21,s22))
         w2 = vecTrMod m2' (fromIntegral <$> b2) v2
         SV (!t10,!t11,!t12) = fromIntegral <$> w1
         SV (!t20,!t21,!t22) = fromIntegral <$> w2
+
+-- $references
+--
+-- #lecuyer1999# [1] Pierre L'Ecuyer,  (1999) Good Parameters and Implementations for
+-- Combined Multiple Recursive Random Number Generators.Operations Research 47(1):159-164.
+-- <https://doi.org/10.1287/opre.47.1.159>
 
 -- EOF

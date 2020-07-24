@@ -15,7 +15,7 @@
 -- Stability   : experimental
 -- Portability : portable
 --
--- Pseudo-random number generation with MRG32k3a (monadic interface).
+-- Pseudo-random number generation with MRG32k3a [\[1\]](#lecuyer1999) (monadic interface).
 --
 -- The generator type 'Gen' is an instance of 'StatefulGen' type class, so
 -- it can be used through 'StatefulGen' intreface functions such like,
@@ -49,8 +49,12 @@ module System.Random.MRG32k3a.Stateful
     , uniform01M
 
     -- * Seed: state management
+    -- $statemgmt
     , Seed
     , fromSeed
+
+    -- * References
+    -- $references
     ) where
 
 import Control.Monad.Primitive (PrimMonad, PrimState, unsafeSTToPrim)
@@ -204,5 +208,38 @@ restore (Seed (t1,t2,t3,t4,t5,t6)) = do
     writeState ary (fromT6 (fromIntegral <$> st))
     return $ Gen ary
 {-# INLINE restore #-}
+
+-- $statemgmt
+--
+-- You can get the current PRNG state by 'freezeGen' as an immutable data
+-- that has type 'Seed'. You may save the state into persistent store and
+-- restore the state by 'thawGen' later.
+--
+-- @
+--   > gen \<- 'initialize' 12345
+--   > replicateM 10 ('uniform01M' gen)
+--   [0.12701112204657714,0.3185275653967945,0.3091860155832701,0.8258468629271136,0.2216299157820229,0.5333953879182788,0.4807742033156181,0.3555598794381262,0.13598841039594017,0.7558522371615436]
+--   > seed \<- 'freezeGen' gen
+--   > show $ 'fromSeed' seed
+--   "(2989318136,3378525425,1773647758,1462200156,2794459678,2822254363)"
+--   > replicateM 10 ('uniform01M' gen)
+--   [0.5755553189002691,0.4100640936040626,0.3263296794324586,0.24037805455705044,0.6100629823964789,0.9041809183707534,0.2989749433907653,3.415449711124772e-2,0.9664250719399228,0.1434954073855292]
+-- @
+--
+-- (in another context,)
+--
+-- @
+--   > let seed = 'Seed' $ read "(2989318136,3378525425,1773647758,1462200156,2794459678,2822254363)"
+--   > gen \<- 'thawGen' seed
+--   > replicateM 10 ('uniform01M' gen)
+--   [0.5755553189002691,0.4100640936040626,0.3263296794324586,0.24037805455705044,0.6100629823964789,0.9041809183707534,0.2989749433907653,3.415449711124772e-2,0.9664250719399228,0.1434954073855292]
+-- @
+--
+
+-- $references
+--
+-- #lecuyer1999# [1] Pierre L'Ecuyer,  (1999) Good Parameters and Implementations for
+-- Combined Multiple Recursive Random Number Generators.Operations Research 47(1):159-164.
+-- <https://doi.org/10.1287/opre.47.1.159>
 
 -- EOF

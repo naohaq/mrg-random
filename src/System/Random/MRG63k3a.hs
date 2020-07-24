@@ -10,7 +10,7 @@
 -- Stability   : experimental
 -- Portability : portable
 --
--- Pseudo-random number generation with MRG63k3a.
+-- Pseudo-random number generation with MRG63k3a [\[1\]](#lecuyer1999).
 --
 -- The generator type 'Gen' is an instance of 'RandomGen' type class, so
 -- it can be used through 'RandomGen' intreface functions such like,
@@ -38,6 +38,9 @@ module System.Random.MRG63k3a
 
     -- * Stream jumping
     , jump
+
+    -- * References
+    -- $references
     ) where
 
 import Data.Typeable (Typeable)
@@ -145,13 +148,13 @@ restore (Seed (t1,t2,t3,t4,t5,t6)) = Gen (fromT6 s)
 -- | Get a new generator jumps ahead by \(2^n\) steps from given generator.
 --
 -- @
---   >>> let g0 = initialize 1234567
---   >>> let g1 = jump 20 g0
---   >>> let xs = unfoldr (Just . uniform01) g0
---   >>> let ys = unfoldr (Just . uniform01) g1
---   >>> take 10 $ drop 1048576 xs
+--   > let g0 = 'initialize' 1234567
+--   > let g1 = 'jump' 20 g0
+--   > let xs = unfoldr (Just . 'uniform01') g0
+--   > let ys = unfoldr (Just . 'uniform01') g1
+--   > take 10 $ drop 1048576 xs
 --   [0.8661862534637614,0.32299545841103733,0.7545203812431158,0.6829503373808978,0.7938803872652808,0.3453801891716969,0.199924353479426,0.7548724584148777,0.4533723232806143,0.855651888940174]
---   >>> take 10 ys
+--   > take 10 ys
 --   [0.8661862534637614,0.32299545841103733,0.7545203812431158,0.6829503373808978,0.7938803872652808,0.3453801891716969,0.199924353479426,0.7548724584148777,0.4533723232806143,0.855651888940174]
 -- @
 jump :: Int -> Gen -> Gen
@@ -167,5 +170,12 @@ jump e (Gen (s10,s11,s12,s20,s21,s22))
         w2  = vecTrModW64 m2' b2 v2
         SV (!t10,!t11,!t12) = fromIntegral <$> w1
         SV (!t20,!t21,!t22) = fromIntegral <$> w2
+
+
+-- $references
+--
+-- #lecuyer1999# [1] Pierre L'Ecuyer,  (1999) Good Parameters and Implementations for
+-- Combined Multiple Recursive Random Number Generators.Operations Research 47(1):159-164.
+-- <https://doi.org/10.1287/opre.47.1.159>
 
 -- EOF
