@@ -9,7 +9,7 @@ description:
    .
      * Long period (@MRG32k3a@: ≈ 2¹⁹¹, @MRG63k3a@: ≈ 2³⁷⁷).
    .
-     * Generate high quality random nubers following U(0,1).
+     * Generate high quality random numbers following U(0,1).
    .
      * Small state vector (6 elements of @Double@ / @Int64@).
    .
